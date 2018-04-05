@@ -10,20 +10,21 @@ from time import sleep
 import socket
 import lxml.html
 
-# global validmail
-scraped_emails = []
+
 working_urls = []
-internal_urls = []
 urls_to_scrape = []
-emails_list = []
+scraped_emails = []
 
 
 fileurls = codecs.open('urls-to-scrape.csv', 'r', 'latin-1')
 filename = "scraped-emails.csv"
 
-f = open(filename, "a")
-f.seek(0)
-f.truncate()
+try:
+	f = open(filename, "a")
+	f.seek(0)
+	f.truncate()
+except IOError:
+	print("Close the .csv file in order for changes to append and re-execute")
 
 # ua = UserAgent()
 # header = {'user-agent':ua.chrome}
@@ -78,7 +79,9 @@ def internal_links():
 			urls_to_scrape.append(link)
 
 
+# The function to remove duplicates on a list
 def remove_duplicates(list):
+
 	output = []
 	seen = set()
 	for element in list:
@@ -104,7 +107,7 @@ def scrape_emails():
 				if(email[-3:] == 'gif' or email[-3:] == 'png' or email[-3:] == 'jpg' or email[-3:] == 'tif' or email[-3:] == 'svg'):
 					continue
 				else:
-					# print(validmail)
+					# print(email)
 					scraped_emails.append(email)
 
 		except urllib.error.URLError:
@@ -112,7 +115,7 @@ def scrape_emails():
 			continue
 
 		except requests.exceptions.ConnectionError:
-			print("Connection Refused")
+			# print("Connection Refused")
 			continue
 
 		except:
@@ -124,12 +127,16 @@ verify_urls(fileurls)
 internal_links()
 scrape_emails()
 
-re_dup = remove_duplicates(scraped_emails)
-print(re_dup)
-emails_list.append(re_dup)
+# re_dup = remove_duplicates(scraped_emails)
+# print(re_dup)
+# emails_list.append(re_dup)
 
-raw_data = {'emails': emails_list}
-df = pd.DataFrame(raw_data, columns=['emails'])
-df.to_csv(f)
+# Creating dataframe and saving the result
+raw_data = {'Scraped e-mails': scraped_emails}
+df = pd.DataFrame(raw_data, columns=['Scraped e-mails'])
+df = df.drop_duplicates('Scraped e-mails')
+# print(df.duplicated())
+df.to_csv(f, index = False)
+
 
 f.close()
